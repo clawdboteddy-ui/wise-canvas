@@ -16,7 +16,7 @@ serve(async (req) => {
 
     const boardSummary = tasks && tasks.length > 0
       ? `\n\nCurrent board state (${tasks.length} tasks):\n${tasks.map((t: any) =>
-          `- [${t.status}] "${t.title}" (priority: ${t.priority}${t.assignee ? `, assignee: ${t.assignee}` : ''}${t.due_date ? `, due: ${t.due_date}` : ''}${t.labels?.length ? `, labels: ${t.labels.join(', ')}` : ''})`
+          `- [${t.status}] id="${t.id}" "${t.title}" (priority: ${t.priority}${t.assignee ? `, assignee: ${t.assignee}` : ''}${t.due_date ? `, due: ${t.due_date}` : ''}${t.labels?.length ? `, labels: ${t.labels.join(', ')}` : ''})`
         ).join('\n')}`
       : '\n\nThe board is currently empty.';
 
@@ -24,8 +24,13 @@ serve(async (req) => {
 
 You have full context of the user's board.${boardSummary}
 
-When the user asks you to create a task, respond with helpful text AND include a tool call with the task details.
-When asked to move tasks, provide analysis and suggestions.
+IMPORTANT RULES:
+- When the user asks to modify/update/change an EXISTING task, use the "update_task" action with the task's id and the fields to change. Do NOT create a new task.
+- When the user asks to create a NEW task, use the "create_task" action.
+- When the user asks to move a task, use the "move_task" action.
+- When the user asks to delete a task, use the "delete_task" action.
+- Match tasks by title or context from the board state above. Use the exact id from the board state.
+
 Keep responses concise and actionable. Use markdown formatting.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -46,17 +51,18 @@ Keep responses concise and actionable. Use markdown formatting.`;
             type: "function",
             function: {
               name: "board_action",
-              description: "Perform an action on the Kanban board like creating or moving tasks",
+              description: "Perform an action on the Kanban board like creating, updating, moving, or deleting tasks",
               parameters: {
                 type: "object",
                 properties: {
                   action: {
                     type: "string",
-                    enum: ["create_task", "move_task"],
-                    description: "The action to perform",
+                    enum: ["create_task", "update_task", "move_task", "delete_task"],
+                    description: "The action to perform. Use update_task to modify existing tasks.",
                   },
                   task: {
                     type: "object",
+                    description: "For create_task: the new task details",
                     properties: {
                       title: { type: "string" },
                       description: { type: "string" },
@@ -66,7 +72,23 @@ Keep responses concise and actionable. Use markdown formatting.`;
                       assignee: { type: "string" },
                     },
                   },
-                  task_id: { type: "string" },
+                  task_id: {
+                    type: "string",
+                    description: "The id of the existing task to update/move/delete",
+                  },
+                  updates: {
+                    type: "object",
+                    description: "For update_task: the fields to change on the existing task",
+                    properties: {
+                      title: { type: "string" },
+                      description: { type: "string" },
+                      priority: { type: "string", enum: ["low", "medium", "high"] },
+                      status: { type: "string", enum: ["todo", "in_progress", "pending", "completed"] },
+                      labels: { type: "array", items: { type: "string" } },
+                      assignee: { type: "string" },
+                      due_date: { type: "string" },
+                    },
+                  },
                   new_status: { type: "string", enum: ["todo", "in_progress", "pending", "completed"] },
                 },
                 required: ["action"],

@@ -1,6 +1,6 @@
 import { Draggable } from '@hello-pangea/dnd';
 import { Task, LABEL_COLORS } from '@/types/kanban';
-import { Calendar, User, MoreHorizontal, Trash2, Pencil } from 'lucide-react';
+import { Calendar, User, MoreHorizontal, Trash2, Pencil, ArrowUp, ArrowRight, ArrowDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,13 +19,28 @@ interface TaskCardProps {
   onDelete: (id: string) => void;
 }
 
-const priorityStyles: Record<string, string> = {
-  low: 'bg-priority-low/15 text-priority-low border-priority-low/30',
-  medium: 'bg-priority-medium/15 text-priority-medium border-priority-medium/30',
-  high: 'bg-priority-high/15 text-priority-high border-priority-high/30',
+const priorityConfig = {
+  low: {
+    icon: ArrowDown,
+    badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    accent: 'border-l-emerald-500',
+  },
+  medium: {
+    icon: ArrowRight,
+    badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    accent: 'border-l-amber-500',
+  },
+  high: {
+    icon: ArrowUp,
+    badge: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+    accent: 'border-l-rose-500',
+  },
 };
 
 export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
+  const priority = priorityConfig[task.priority];
+  const PriorityIcon = priority.icon;
+
   return (
     <Draggable draggableId={task.id} index={index}>
       {(provided, snapshot) => (
@@ -34,18 +49,22 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className={cn(
-            'group rounded-lg bg-kanban-card p-3.5 transition-all duration-200 cursor-grab active:cursor-grabbing',
-            'hover:bg-kanban-card-hover border border-transparent',
-            snapshot.isDragging && 'border-kanban-drag/40 shadow-lg shadow-kanban-drag/10 scale-[1.02] rotate-[1deg]'
+            'group rounded-lg p-3.5 transition-all duration-200 cursor-grab active:cursor-grabbing',
+            'bg-gradient-to-br from-kanban-card to-kanban-card/80',
+            'border border-border/50 border-l-[3px]',
+            priority.accent,
+            'hover:border-border hover:shadow-md hover:shadow-primary/5 hover:-translate-y-0.5',
+            snapshot.isDragging && 'border-primary/40 shadow-xl shadow-primary/15 scale-[1.03] rotate-[1.5deg] z-50'
           )}
           onClick={() => onEdit(task)}
         >
           {/* Priority + Actions */}
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2.5">
             <Badge
               variant="outline"
-              className={cn('text-[10px] uppercase tracking-wider font-semibold border px-1.5 py-0', priorityStyles[task.priority])}
+              className={cn('text-[10px] uppercase tracking-wider font-semibold border px-1.5 py-0.5 gap-1', priority.badge)}
             >
+              <PriorityIcon className="h-2.5 w-2.5" />
               {task.priority}
             </Badge>
             <DropdownMenu>
@@ -83,7 +102,7 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
                 <span
                   key={label}
                   className={cn(
-                    'text-[10px] px-1.5 py-0.5 rounded-full font-medium',
+                    'text-[10px] px-2 py-0.5 rounded-full font-medium',
                     LABEL_COLORS[label] || 'bg-muted text-muted-foreground'
                   )}
                 >
@@ -103,7 +122,9 @@ export function TaskCard({ task, index, onEdit, onDelete }: TaskCardProps) {
             )}
             {task.assignee && (
               <span className="flex items-center gap-1">
-                <User className="h-3 w-3" />
+                <div className="h-4 w-4 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-[8px] font-bold text-primary">{task.assignee.charAt(0).toUpperCase()}</span>
+                </div>
                 {task.assignee}
               </span>
             )}
