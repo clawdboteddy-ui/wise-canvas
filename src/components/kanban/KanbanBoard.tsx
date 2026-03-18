@@ -7,11 +7,22 @@ import { AIChatSidebar } from './AIChatSidebar';
 import { useTasks } from '@/hooks/useTasks';
 import { Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
 interface KanbanBoardProps {
   aiOpen: boolean;
   onAiClose: () => void;
+}
+
+function fireConfetti() {
+  confetti({
+    particleCount: 80,
+    spread: 70,
+    origin: { y: 0.6 },
+    colors: ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'],
+  });
 }
 
 export function KanbanBoard({ aiOpen, onAiClose }: KanbanBoardProps) {
@@ -36,8 +47,18 @@ export function KanbanBoard({ aiOpen, onAiClose }: KanbanBoardProps) {
   const handleDragEnd = useCallback((result: DropResult) => {
     if (!result.destination) return;
     const { draggableId, destination } = result;
-    moveTask(draggableId, destination.droppableId as TaskStatus, destination.index);
-  }, [moveTask]);
+    const newStatus = destination.droppableId as TaskStatus;
+    
+    // Fire confetti when dropping into completed
+    if (newStatus === 'completed') {
+      const task = tasks.find(t => t.id === draggableId);
+      if (task && task.status !== 'completed') {
+        fireConfetti();
+      }
+    }
+    
+    moveTask(draggableId, newStatus, destination.index);
+  }, [moveTask, tasks]);
 
   const handleEdit = (task: Task) => {
     setEditingTask(task);
@@ -74,6 +95,12 @@ export function KanbanBoard({ aiOpen, onAiClose }: KanbanBoardProps) {
     } else if (action.action === 'move_task') {
       await moveTask(action.task_id, action.new_status, 0);
       toast.success('AI moved task');
+    } else if (action.action === 'update_task') {
+      await updateTask(action.task_id, action.updates);
+      toast.success('AI updated task');
+    } else if (action.action === 'delete_task') {
+      await deleteTask(action.task_id);
+      toast.success('AI deleted task');
     }
   };
 
@@ -91,11 +118,14 @@ export function KanbanBoard({ aiOpen, onAiClose }: KanbanBoardProps) {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Board</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {tasks.length} task{tasks.length !== 1 ? 's' : ''} · Press <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">N</kbd> to create
-            </p>
+          <div className="flex items-center gap-3">
+            <SidebarTrigger className="h-8 w-8" />
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">Board</h1>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {tasks.length} task{tasks.length !== 1 ? 's' : ''} · Press <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">N</kbd> to create
+              </p>
+            </div>
           </div>
           <Button
             size="sm"
