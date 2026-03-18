@@ -5,17 +5,21 @@ import { KanbanColumn } from './KanbanColumn';
 import { TaskEditDialog } from './TaskEditDialog';
 import { AIChatSidebar } from './AIChatSidebar';
 import { useTasks } from '@/hooks/useTasks';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Plus, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+  aiOpen: boolean;
+  onAiClose: () => void;
+}
+
+export function KanbanBoard({ aiOpen, onAiClose }: KanbanBoardProps) {
   const { tasks, loading, createTask, updateTask, deleteTask, moveTask, getTasksByStatus } = useTasks();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isNewTask, setIsNewTask] = useState(false);
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>('todo');
-  const [aiOpen, setAiOpen] = useState(false);
 
   // Keyboard shortcut: N to create task
   useEffect(() => {
@@ -64,7 +68,6 @@ export function KanbanBoard() {
   };
 
   const handleAIAction = async (action: any) => {
-    // AI can return structured actions
     if (action.action === 'create_task') {
       await createTask(action.task);
       toast.success(`AI created: ${action.task.title}`);
@@ -95,13 +98,12 @@ export function KanbanBoard() {
             </p>
           </div>
           <Button
-            variant={aiOpen ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setAiOpen(!aiOpen)}
+            onClick={() => handleAdd('todo')}
             className="gap-2"
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            AI Assistant
+            <Plus className="h-3.5 w-3.5" />
+            Add Task
           </Button>
         </div>
 
@@ -127,7 +129,7 @@ export function KanbanBoard() {
       {/* AI Sidebar */}
       <AIChatSidebar
         open={aiOpen}
-        onClose={() => setAiOpen(false)}
+        onClose={onAiClose}
         tasks={tasks}
         onAction={handleAIAction}
       />
