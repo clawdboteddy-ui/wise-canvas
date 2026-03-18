@@ -18,13 +18,17 @@ interface AppSidebarProps {
 export function AppSidebar({ activeItem, onItemClick }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-4 py-4">
-        <div className="flex items-center gap-2.5 overflow-hidden">
-          <div className="h-8 w-8 shrink-0 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">T</span>
-          </div>
-          <span className="text-sm font-semibold text-foreground whitespace-nowrap">TaskFlow</span>
-        </div>
+      <SidebarHeader className="p-3">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" className="pointer-events-none">
+              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <span className="font-bold text-sm">T</span>
+              </div>
+              <span className="text-sm font-semibold text-foreground">TaskFlow</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent>
