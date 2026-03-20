@@ -22,7 +22,7 @@ export function AppSidebar({ activeItem, onItemClick }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton className="pointer-events-none" tooltip="TaskFlow">
-              <div className="flex h-6 w-6 items-center justify-center rounded bg-primary text-primary-foreground text-xs font-bold shrink-0">
+              <div className="flex items-center justify-center rounded bg-primary text-primary-foreground font-bold shrink-0 size-4 text-[10px] group-data-[collapsible=icon]:size-4">
                 T
               </div>
               <span className="text-sm font-semibold text-foreground">TaskFlow</span>
