@@ -18,12 +18,12 @@ interface AppSidebarProps {
 export function AppSidebar({ activeItem, onItemClick }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-3">
+      <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" className="pointer-events-none">
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <span className="font-bold text-sm">T</span>
+            <SidebarMenuButton className="pointer-events-none" tooltip="TaskFlow">
+              <div className="flex aspect-square size-4 items-center justify-center rounded bg-primary text-primary-foreground text-[10px] font-bold">
+                T
               </div>
               <span className="text-sm font-semibold text-foreground">TaskFlow</span>
             </SidebarMenuButton>
